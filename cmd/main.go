@@ -23,8 +23,6 @@ import (
 	"k8s.io/client-go/rest"
 	"os"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
-	"strings"
-
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -56,14 +54,14 @@ func main() {
 	var enableLeaderElection bool
 	var probeAddr string
 	var role string
-	var namespaces string
+	var namespace string
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8082", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
 	flag.StringVar(&role, "role", "Aggregator", "The role of the controller")
-	flag.StringVar(&namespaces, "namespaces", "kubesphere-logging-system", "The namespace of the controller")
+	flag.StringVar(&namespace, "namespaces", "kubesphere-logging-system", "The namespace of the controller")
 	opts := zap.Options{
 		Development: true,
 	}
@@ -104,8 +102,7 @@ func main() {
 				return nil, err
 			}
 			opts.DefaultLabelSelector = selector
-			ns := strings.Split(namespaces, ",")
-			opts.Namespaces = ns
+			opts.Namespaces = []string{namespace}
 			// Specific selectors per type of object
 			return cache.New(config, opts)
 		},
