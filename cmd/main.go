@@ -61,7 +61,7 @@ func main() {
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
 	flag.StringVar(&role, "role", "Aggregator", "The role of the controller")
-	flag.StringVar(&namespace, "namespaces", "kubesphere-logging-system", "The namespace of the controller")
+	flag.StringVar(&namespace, "namespace", "kubesphere-logging-system", "The namespace of the controller")
 	opts := zap.Options{
 		Development: true,
 	}
