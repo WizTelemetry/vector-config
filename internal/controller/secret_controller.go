@@ -50,7 +50,7 @@ type SecretReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.15.0/pkg/reconcile
 func (r *SecretReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	logger := log.FromContext(ctx)
+	_ = log.FromContext(ctx)
 	secret := &v1.Secret{}
 	err := r.Get(ctx, req.NamespacedName, secret)
 	if err != nil {
@@ -99,7 +99,6 @@ func (r *SecretReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		if err != nil {
 			return ctrl.Result{}, err
 		}
-		logger.Info("write file", "path", path, "content", string(bytes))
 	}
 
 	return ctrl.Result{}, nil
