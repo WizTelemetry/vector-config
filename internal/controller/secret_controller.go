@@ -19,6 +19,7 @@ package controller
 import (
 	"context"
 	"fmt"
+	"github.com/duke-git/lancet/v2/slice"
 	"github.com/kubesphere-sigs/config-reload/internal/constants"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -28,6 +29,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"strings"
 )
 
 // SecretReconciler reconciles a Secret object
@@ -50,27 +52,29 @@ type SecretReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.15.0/pkg/reconcile
 func (r *SecretReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	logger := log.FromContext(ctx)
 	secret := &v1.Secret{}
 	err := r.Get(ctx, req.NamespacedName, secret)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			return ctrl.Result{}, nil
 		}
-		// 其他错误
 		return ctrl.Result{}, err
 	}
 
+	annotations := secret.ObjectMeta.Annotations
+	if annotations == nil {
+		annotations = make(map[string]string)
+	}
+
+	var generatedFile []string
 	if !secret.ObjectMeta.DeletionTimestamp.IsZero() {
-		// 检查是否包含Finalizer
 		containsFinalizer := controllerutil.ContainsFinalizer(secret, constants.SecretFinalizer)
 		if containsFinalizer {
-			// 删除文件
 			err = r.deleteFiles(ctx, secret)
 			if err != nil {
 				return ctrl.Result{}, err
 			}
-			// 移除Finalizer
 			controllerutil.RemoveFinalizer(secret, constants.SecretFinalizer)
 			err = r.Update(ctx, secret)
 			if err != nil {
@@ -79,10 +83,8 @@ func (r *SecretReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		}
 		return ctrl.Result{}, nil
 	} else {
-		// 检查是否包含Finalizer
 		containsFinalizer := controllerutil.ContainsFinalizer(secret, constants.SecretFinalizer)
 		if !containsFinalizer {
-			// 添加Finalizer
 			controllerutil.AddFinalizer(secret, constants.SecretFinalizer)
 			err = r.Update(ctx, secret)
 			if err != nil {
@@ -91,14 +93,25 @@ func (r *SecretReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		}
 	}
 
-	// 创建或更新文件
+	err = r.removeFiles(ctx, secret)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
 	for s, bytes := range secret.Data {
-		// 写入文件
+		generatedFile = append(generatedFile, s)
 		path := fmt.Sprintf("%s/%s", constants.FilePath, s)
 		err = os.WriteFile(path, bytes, 0644)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
+		logger.Info("create file", "path", path)
+	}
+
+	annotations[constants.GeneratedFiles] = strings.Join(generatedFile, ",")
+	err = r.Update(ctx, secret)
+	if err != nil {
+		return ctrl.Result{}, err
 	}
 
 	return ctrl.Result{}, nil
@@ -114,13 +127,37 @@ func (r *SecretReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 func (r *SecretReconciler) deleteFiles(ctx context.Context, secret *v1.Secret) error {
 	logger := log.FromContext(ctx)
-	// 执行文件清理操作
 	for s := range secret.Data {
-		// 删除文件
 		path := fmt.Sprintf("%s/%s", constants.FilePath, s)
 		err := os.Remove(path)
 		if err != nil && !os.IsNotExist(err) {
-			// 如果出现错误并且不是文件不存在的错误，返回错误
+			return err
+		}
+		logger.Info("delete file", "path", path)
+	}
+	return nil
+}
+func (r *SecretReconciler) removeFiles(ctx context.Context, secret *v1.Secret) error {
+	logger := log.FromContext(ctx)
+	annotations := secret.Annotations
+	if annotations == nil {
+		return nil
+	}
+	raw := annotations[constants.GeneratedFiles]
+	if raw == "" {
+		return nil
+	}
+	oldFiles := strings.Split(raw, ",")
+
+	newFiles := make([]string, 0)
+	for s := range secret.Data {
+		newFiles = append(newFiles, s)
+	}
+	difference := slice.Difference(oldFiles, newFiles)
+	for _, file := range difference {
+		path := fmt.Sprintf("%s/%s", constants.FilePath, file)
+		err := os.Remove(path)
+		if err != nil {
 			return err
 		}
 		logger.Info("delete file", "path", path)

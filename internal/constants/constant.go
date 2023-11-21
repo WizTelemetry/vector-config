@@ -7,4 +7,5 @@ const (
 	FilePath        = "/etc/vector"
 	SecretFinalizer = "finalizers.kubesphere.io/secret-finalizer"
 	SecretLabel     = "vector.kubesphere.io/config"
+	GeneratedFiles  = "generated-files"
 )
