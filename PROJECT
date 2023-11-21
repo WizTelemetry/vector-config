@@ -5,8 +5,8 @@
 domain: kubesphere.io
 layout:
 - go.kubebuilder.io/v4
-projectName: config-reload
-repo: github.com/kubesphere-sigs/config-reload
+projectName: vector-config-generator
+repo: github.com/kubesphere-sigs/vector-config-generator
 resources:
 - controller: true
   domain: kubesphere.io

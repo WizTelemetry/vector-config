@@ -18,7 +18,7 @@ package main
 
 import (
 	"flag"
-	"github.com/kubesphere-sigs/config-reload/internal/constants"
+	"github.com/kubesphere-sigs/vector-config-generator/internal/constants"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 	"os"
@@ -34,7 +34,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	"github.com/kubesphere-sigs/config-reload/internal/controller"
+	"github.com/kubesphere-sigs/vector-config-generator/internal/controller"
 	//+kubebuilder:scaffold:imports
 )
 

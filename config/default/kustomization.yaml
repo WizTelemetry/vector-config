@@ -1,12 +1,12 @@
 # Adds namespace to all resources.
-namespace: config-reload-system
+namespace: vector-config-generator-system
 
 # Value of this field is prepended to the
 # names of all resources, e.g. a deployment named
 # "wordpress" becomes "alices-wordpress".
 # Note that it should also match with the prefix (text before '-') of the namespace
 # field above.
-namePrefix: config-reload-
+namePrefix: vector-config-generator-
 
 # Labels to add to all resources and selectors.
 #labels:

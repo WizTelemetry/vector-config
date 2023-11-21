@@ -20,7 +20,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/duke-git/lancet/v2/slice"
-	"github.com/kubesphere-sigs/config-reload/internal/constants"
+	"github.com/kubesphere-sigs/vector-config-generator/internal/constants"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
