@@ -1,4 +1,4 @@
-name: WorkFlow for Building vector-config-generator image
+name: WorkFlow for Building vector-config image
 
 on:
   push:
@@ -24,7 +24,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    name: Build vector-config-generator Image
+    name: Build vector-config Image
     steps:
       - name: Install Go
         uses: actions/setup-go@v2
@@ -61,4 +61,4 @@ jobs:
       - name: Build and Push image
         run: |
           tag=$(cat VERSION | tr -d " \t\n\r")
-          make docker-build -e IMG=${{ env.REPO }}/vector-config-generator:$tag
+          make docker-build -e IMG=${{ env.REPO }}/vector-config:$tag

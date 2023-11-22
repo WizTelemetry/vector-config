@@ -1,4 +1,4 @@
-module github.com/kubesphere-sigs/vector-config-generator
+module github.com/kubesphere-sigs/vector-config
 
 go 1.20
 
