@@ -9,3 +9,7 @@ const (
 	SecretLabel     = "vector.kubesphere.io/config"
 	GeneratedFiles  = "generated-files"
 )
+
+var (
+	FileDir = ""
+)

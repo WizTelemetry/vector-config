@@ -100,7 +100,7 @@ func (r *SecretReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 
 	for s, bytes := range secret.Data {
 		generatedFile = append(generatedFile, s)
-		path := fmt.Sprintf("%s/%s", constants.FilePath, s)
+		path := fmt.Sprintf("%s/%s", constants.FileDir, s)
 		err = os.WriteFile(path, bytes, 0644)
 		if err != nil {
 			return ctrl.Result{}, err
@@ -155,7 +155,7 @@ func (r *SecretReconciler) removeFiles(ctx context.Context, secret *v1.Secret) e
 	}
 	difference := slice.Difference(oldFiles, newFiles)
 	for _, file := range difference {
-		path := fmt.Sprintf("%s/%s", constants.FilePath, file)
+		path := fmt.Sprintf("%s/%s", constants.FileDir, file)
 		err := os.Remove(path)
 		if err != nil {
 			return err

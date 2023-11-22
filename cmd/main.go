@@ -62,6 +62,8 @@ func main() {
 			"Enabling this will ensure there is only one active controller manager.")
 	flag.StringVar(&role, "role", "Aggregator", "The role of the controller")
 	flag.StringVar(&namespace, "namespace", "kubesphere-logging-system", "The namespace of the controller")
+	flag.StringVar(&constants.FileDir, "fileDir", "", "The directory of the generated files")
+
 	opts := zap.Options{
 		Development: true,
 	}
@@ -70,7 +72,12 @@ func main() {
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
+	if constants.FileDir == "" {
+		constants.FileDir = constants.FilePath
+	}
+
 	setupLog.Info("Current mode is " + role)
+	setupLog.Info("current fileDir is " + constants.FileDir)
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
