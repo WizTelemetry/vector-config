@@ -19,17 +19,15 @@ package controller
 import (
 	"context"
 	"fmt"
-	"github.com/duke-git/lancet/v2/slice"
 	"github.com/kubesphere-sigs/vector-config/internal/constants"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"os"
+	"path/filepath"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"strings"
 )
 
 // SecretReconciler reconciles a Secret object
@@ -52,66 +50,37 @@ type SecretReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.15.0/pkg/reconcile
 func (r *SecretReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	logger := log.FromContext(ctx)
-	secret := &v1.Secret{}
-	err := r.Get(ctx, req.NamespacedName, secret)
+	_ = log.FromContext(ctx)
+	secrets := &v1.SecretList{}
+	selector, err := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
+		MatchLabels: map[string]string{
+			constants.SecretLabel: constants.VectorRole,
+		},
+	})
 	if err != nil {
-		if errors.IsNotFound(err) {
-			return ctrl.Result{}, nil
-		}
 		return ctrl.Result{}, err
 	}
-
-	annotations := secret.ObjectMeta.Annotations
-	if annotations == nil {
-		annotations = make(map[string]string)
-	}
-
-	var generatedFile []string
-	if !secret.ObjectMeta.DeletionTimestamp.IsZero() {
-		containsFinalizer := controllerutil.ContainsFinalizer(secret, constants.SecretFinalizer)
-		if containsFinalizer {
-			err = r.deleteFiles(ctx, secret)
-			if err != nil {
-				return ctrl.Result{}, err
-			}
-			controllerutil.RemoveFinalizer(secret, constants.SecretFinalizer)
-			err = r.Update(ctx, secret)
-			if err != nil {
-				return ctrl.Result{}, err
-			}
-		}
-		return ctrl.Result{}, nil
-	} else {
-		containsFinalizer := controllerutil.ContainsFinalizer(secret, constants.SecretFinalizer)
-		if !containsFinalizer {
-			controllerutil.AddFinalizer(secret, constants.SecretFinalizer)
-			err = r.Update(ctx, secret)
-			if err != nil {
-				return ctrl.Result{}, err
-			}
-		}
-	}
-
-	err = r.removeFiles(ctx, secret)
+	err = r.List(ctx, secrets, &client.ListOptions{
+		Namespace:     req.Namespace,
+		LabelSelector: selector,
+	})
 	if err != nil {
 		return ctrl.Result{}, err
 	}
 
-	for s, bytes := range secret.Data {
-		generatedFile = append(generatedFile, s)
-		path := fmt.Sprintf("%s/%s", constants.FileDir, s)
-		err = os.WriteFile(path, bytes, 0644)
-		if err != nil {
-			return ctrl.Result{}, err
-		}
-		logger.Info("create file", "path", path)
-	}
-
-	annotations[constants.GeneratedFiles] = strings.Join(generatedFile, ",")
-	err = r.Update(ctx, secret)
+	err = r.removeAllFiles()
 	if err != nil {
 		return ctrl.Result{}, err
+	}
+
+	for _, secret := range secrets.Items {
+		for s, bytes := range secret.Data {
+			path := fmt.Sprintf("%s/%s-%s", constants.FileDir, secret.Name, s)
+			err = os.WriteFile(path, bytes, 0644)
+			if err != nil {
+				return ctrl.Result{}, err
+			}
+		}
 	}
 
 	return ctrl.Result{}, nil
@@ -125,42 +94,21 @@ func (r *SecretReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-func (r *SecretReconciler) deleteFiles(ctx context.Context, secret *v1.Secret) error {
-	logger := log.FromContext(ctx)
-	for s := range secret.Data {
-		path := fmt.Sprintf("%s/%s", constants.FilePath, s)
-		err := os.Remove(path)
-		if err != nil && !os.IsNotExist(err) {
-			return err
-		}
-		logger.Info("delete file", "path", path)
-	}
-	return nil
-}
-func (r *SecretReconciler) removeFiles(ctx context.Context, secret *v1.Secret) error {
-	logger := log.FromContext(ctx)
-	annotations := secret.Annotations
-	if annotations == nil {
-		return nil
-	}
-	raw := annotations[constants.GeneratedFiles]
-	if raw == "" {
-		return nil
-	}
-	oldFiles := strings.Split(raw, ",")
-
-	newFiles := make([]string, 0)
-	for s := range secret.Data {
-		newFiles = append(newFiles, s)
-	}
-	difference := slice.Difference(oldFiles, newFiles)
-	for _, file := range difference {
-		path := fmt.Sprintf("%s/%s", constants.FileDir, file)
-		err := os.Remove(path)
+func (r *SecretReconciler) removeAllFiles() error {
+	err := filepath.Walk(constants.FileDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-		logger.Info("delete file", "path", path)
+		if !info.IsDir() {
+			err := os.Remove(path)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return err
 	}
 	return nil
 }

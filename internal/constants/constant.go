@@ -11,5 +11,6 @@ const (
 )
 
 var (
-	FileDir = ""
+	FileDir    = ""
+	VectorRole = ""
 )

@@ -101,8 +101,9 @@ func main() {
 			if role != constants.Aggregator && role != constants.Agent {
 				role = constants.Aggregator
 			}
+			constants.VectorRole = role
 			labelSelector := metav1.LabelSelector{
-				MatchLabels: map[string]string{constants.SecretLabel: role},
+				MatchLabels: map[string]string{constants.SecretLabel: constants.VectorRole},
 			}
 			selector, err := metav1.LabelSelectorAsSelector(&labelSelector)
 			if err != nil {
