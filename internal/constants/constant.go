@@ -1,13 +1,14 @@
 package constants
 
 const (
-	SecretLabelKey  = "app.kubernetes.io/component"
-	Aggregator      = "Aggregator"
-	Agent           = "Agent"
-	FilePath        = "/etc/vector"
-	SecretFinalizer = "finalizers.kubesphere.io/secret-finalizer"
-	SecretLabel     = "vector.kubesphere.io/config"
-	GeneratedFiles  = "generated-files"
+	SecretLabelKey      = "app.kubernetes.io/component"
+	Aggregator          = "Aggregator"
+	Agent               = "Agent"
+	FilePath            = "/etc/vector"
+	SecretFinalizer     = "finalizers.kubesphere.io/secret-finalizer"
+	SecretLabel         = "logging.whizard.io/role"
+	ConfigReloadEnabled = "logging.whizard.io/enable"
+	GeneratedFiles      = "generated-files"
 )
 
 var (

@@ -103,7 +103,10 @@ func main() {
 			}
 			constants.VectorRole = role
 			labelSelector := metav1.LabelSelector{
-				MatchLabels: map[string]string{constants.SecretLabel: constants.VectorRole},
+				MatchLabels: map[string]string{
+					constants.SecretLabel:         constants.VectorRole,
+					constants.ConfigReloadEnabled: "true",
+				},
 			}
 			selector, err := metav1.LabelSelectorAsSelector(&labelSelector)
 			if err != nil {
