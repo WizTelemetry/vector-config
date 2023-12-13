@@ -23,6 +23,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/klog/v2"
 	"os"
 	"path/filepath"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -61,6 +62,7 @@ func (r *SecretReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	if err != nil {
 		return ctrl.Result{}, err
 	}
+
 	err = r.List(ctx, secrets, &client.ListOptions{
 		Namespace:     req.Namespace,
 		LabelSelector: selector,
@@ -69,9 +71,8 @@ func (r *SecretReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		return ctrl.Result{}, err
 	}
 
-	err = r.removeAllFiles()
-	if err != nil {
-		return ctrl.Result{}, err
+	for _, item := range secrets.Items {
+		klog.Info("found secret: ", item.Name)
 	}
 
 	for _, secret := range secrets.Items {
