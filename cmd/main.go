@@ -23,6 +23,7 @@ import (
 	"k8s.io/client-go/rest"
 	"os"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
+
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -60,7 +61,7 @@ func main() {
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
-	flag.StringVar(&role, "role", "Aggregator", "The role of the controller")
+	flag.StringVar(&role, "role", "Agent", "The role of the controller")
 	flag.StringVar(&namespace, "namespace", "kubesphere-logging-system", "The namespace of the controller")
 	flag.StringVar(&constants.FileDir, "fileDir", "", "The directory of the generated files")
 
@@ -76,7 +77,7 @@ func main() {
 		constants.FileDir = constants.FilePath
 	}
 
-	setupLog.Info("Current mode is " + role)
+	setupLog.Info("Current mode is " + constants.VectorRole)
 	setupLog.Info("current fileDir is " + constants.FileDir)
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
