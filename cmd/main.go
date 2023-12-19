@@ -77,7 +77,7 @@ func main() {
 		constants.FileDir = constants.FilePath
 	}
 
-	setupLog.Info("Current mode is " + constants.VectorRole)
+	setupLog.Info("Current mode is " + role)
 	setupLog.Info("current fileDir is " + constants.FileDir)
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
