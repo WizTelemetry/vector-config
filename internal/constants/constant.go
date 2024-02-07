@@ -9,6 +9,8 @@ const (
 	SecretLabel         = "logging.whizard.io/vector-role"
 	ConfigReloadEnabled = "logging.whizard.io/enable"
 	GeneratedFiles      = "generated-files"
+	Config              = "config"
+	Ccertification      = "certification"
 )
 
 var (
