@@ -65,8 +65,8 @@ func (r *SecretReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	CAsecrets := &v1.SecretList{}
 	CAselector, err := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
 		MatchLabels: map[string]string{
-			constants.SecretLabel:         constants.Ccertification,
-			constants.ConfigReloadEnabled: "true",
+			constants.SecretLabel: constants.VectorRole,
+			constants.CAlLabel:    constants.Certification,
 		},
 	})
 	if err != nil {
@@ -92,7 +92,7 @@ func (r *SecretReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		fmt.Println("Error creating directory:", err)
 		return ctrl.Result{}, err
 	}
-	capath := fmt.Sprintf("%s/%s", constants.FileDir, constants.Ccertification)
+	capath := fmt.Sprintf("%s/%s", constants.FileDir, constants.Certification)
 	err = os.MkdirAll(capath, 0755)
 	if err != nil {
 		fmt.Println("Error creating directory:", err)
@@ -119,7 +119,7 @@ func (r *SecretReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 
 	for _, cs := range CAsecrets.Items {
 		for s, bytes := range cs.Data {
-			path := fmt.Sprintf("%s/%s/%s-%s", constants.FileDir, constants.Ccertification, cs.Name, s)
+			path := fmt.Sprintf("%s/%s/%s", constants.FileDir, constants.Certification, s)
 			err = os.WriteFile(path, bytes, 0644)
 			if err != nil {
 				return ctrl.Result{}, err
