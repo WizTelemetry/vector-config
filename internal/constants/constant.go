@@ -7,7 +7,7 @@ const (
 	FilePath            = "/etc/vector/custom"
 	SecretFinalizer     = "finalizers.kubesphere.io/secret-finalizer"
 	SecretLabel         = "logging.whizard.io/vector-role"
-	CAlLabel            =  "logging.whizard.io"
+	CALabel            =  "logging.whizard.io"
 	ConfigReloadEnabled = "logging.whizard.io/enable"
 	GeneratedFiles      = "generated-files"
 	Config              = "config"
