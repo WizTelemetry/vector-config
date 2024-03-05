@@ -65,8 +65,8 @@ func (r *SecretReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	CAsecrets := &v1.SecretList{}
 	CAselector, err := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
 		MatchLabels: map[string]string{
-			constants.SecretLabel: constants.VectorRole,
-			constants.CALabel:    constants.Certification,
+			constants.SecretLabel:        constants.VectorRole,
+			constants.CertificationLabel: "true",
 		},
 	})
 	if err != nil {
