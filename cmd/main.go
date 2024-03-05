@@ -19,7 +19,6 @@ package main
 import (
 	"flag"
 	"github.com/kubesphere-sigs/vector-config/internal/constants"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 	"os"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
@@ -103,17 +102,6 @@ func main() {
 				role = constants.Aggregator
 			}
 			constants.VectorRole = role
-			labelSelector := metav1.LabelSelector{
-				MatchLabels: map[string]string{
-					constants.SecretLabel:         constants.VectorRole,
-					constants.ConfigReloadEnabled: "true",
-				},
-			}
-			selector, err := metav1.LabelSelectorAsSelector(&labelSelector)
-			if err != nil {
-				return nil, err
-			}
-			opts.DefaultLabelSelector = selector
 			opts.Namespaces = []string{namespace}
 			// Specific selectors per type of object
 			return cache.New(config, opts)
