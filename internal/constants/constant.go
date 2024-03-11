@@ -10,7 +10,6 @@ const (
 	CertificationLabel  = "logging.whizard.io/certification"
 	ConfigReloadEnabled = "logging.whizard.io/enable"
 	GeneratedFiles      = "generated-files"
-	Config              = "config"
 	Certification       = "certification"
 )
 
