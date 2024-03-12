@@ -86,7 +86,7 @@ func (r *SecretReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		return ctrl.Result{}, err
 	}
 
-	configpath := fmt.Sprintf("%s/%s", constants.FileDir, constants.Config)
+	configpath := fmt.Sprintf("%s", constants.FileDir)
 	err = os.MkdirAll(configpath, 0755)
 	if err != nil {
 		fmt.Println("Error creating directory:", err)
@@ -101,7 +101,7 @@ func (r *SecretReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 
 	for _, cs := range configsecrets.Items {
 		for s, bytes := range cs.Data {
-			path := fmt.Sprintf("%s/%s/%s-%s", constants.FileDir, constants.Config, cs.Name, s)
+			path := fmt.Sprintf("%s/%s-%s", constants.FileDir, cs.Name, s)
 			err = os.WriteFile(path, bytes, 0644)
 			if err != nil {
 				return ctrl.Result{}, err
