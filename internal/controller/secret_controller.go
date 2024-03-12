@@ -51,8 +51,8 @@ type SecretReconciler struct {
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.15.0/pkg/reconcile
 func (r *SecretReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
-	secrets := &v1.SecretList{}
-	selector, err := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
+	configsecrets := &v1.SecretList{}
+	configselector, err := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
 		MatchLabels: map[string]string{
 			constants.SecretLabel:         constants.VectorRole,
 			constants.ConfigReloadEnabled: "true",
@@ -62,23 +62,46 @@ func (r *SecretReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		return ctrl.Result{}, err
 	}
 
+	CAsecrets := &v1.SecretList{}
+	CAselector, err := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
+		MatchLabels: map[string]string{
+			constants.SecretLabel:        constants.VectorRole,
+			constants.CertificationLabel: "true",
+		},
+	})
+	if err != nil {
+		return ctrl.Result{}, err
+	}
 	// remove all
 	err = r.removeAllFiles()
 	if err != nil {
 		return ctrl.Result{}, err
 	}
 
-	err = r.List(ctx, secrets, &client.ListOptions{
+	err = r.List(ctx, configsecrets, &client.ListOptions{
 		Namespace:     req.Namespace,
-		LabelSelector: selector,
+		LabelSelector: configselector,
 	})
 	if err != nil {
 		return ctrl.Result{}, err
 	}
 
-	for _, secret := range secrets.Items {
-		for s, bytes := range secret.Data {
-			path := fmt.Sprintf("%s/%s-%s", constants.FileDir, secret.Name, s)
+	configpath := fmt.Sprintf("%s", constants.FileDir)
+	err = os.MkdirAll(configpath, 0755)
+	if err != nil {
+		fmt.Println("Error creating directory:", err)
+		return ctrl.Result{}, err
+	}
+	capath := fmt.Sprintf("%s/%s", constants.FileDir, constants.Certification)
+	err = os.MkdirAll(capath, 0755)
+	if err != nil {
+		fmt.Println("Error creating directory:", err)
+		return ctrl.Result{}, err
+	}
+
+	for _, cs := range configsecrets.Items {
+		for s, bytes := range cs.Data {
+			path := fmt.Sprintf("%s/%s-%s", constants.FileDir, cs.Name, s)
 			err = os.WriteFile(path, bytes, 0644)
 			if err != nil {
 				return ctrl.Result{}, err
@@ -86,6 +109,23 @@ func (r *SecretReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		}
 	}
 
+	err = r.List(ctx, CAsecrets, &client.ListOptions{
+		Namespace:     req.Namespace,
+		LabelSelector: CAselector,
+	})
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	for _, cs := range CAsecrets.Items {
+		for s, bytes := range cs.Data {
+			path := fmt.Sprintf("%s/%s/%s", constants.FileDir, constants.Certification, s)
+			err = os.WriteFile(path, bytes, 0644)
+			if err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+	}
 	return ctrl.Result{}, nil
 }
 
