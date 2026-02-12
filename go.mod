@@ -1,6 +1,6 @@
 module github.com/kubesphere-sigs/vector-config
 
-go 1.20
+go 1.25
 
 require (
 	github.com/onsi/ginkgo/v2 v2.9.5
